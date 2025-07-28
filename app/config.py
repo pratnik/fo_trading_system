@@ -14,7 +14,9 @@ import os
 from typing import Dict, List, Any, Optional
 from enum import Enum
 from datetime import time
-from pydantic import BaseSettings, Field
+#from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 import logging
 
 logger = logging.getLogger("config")
