@@ -13,4 +13,4 @@ celery
 redis
 gunicorn
 pytest
-plotely
+plotly>=5.0.0  
