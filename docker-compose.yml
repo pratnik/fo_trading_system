@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: fo_trading
+      POSTGRES_USER: fo_user
+      POSTGRES_PASSWORD: fo_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  celery:
+    build: .
+    command: celery -A app.tasks.celery_tasks worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

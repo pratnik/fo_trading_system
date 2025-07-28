@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: fo-trading-system
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: REDIS_URL
+        sync: false
+      - key: PORT
+        value: 8501
+    
+  - type: pserv
+    name: fo-trading-postgres
+    env: postgresql
+    databases:
+      - name: fo_trading
+        user: fo_user
+    
+  - type: redis
+    name: fo-trading-redis
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru

@@ -1,0 +1,15 @@
+cryptography
+sqlalchemy
+pydantic
+pandas
+numpy
+scikit-learn
+streamlit
+requests
+psycopg2-binary
+fyers-apiv3
+kiteconnect
+celery
+redis
+gunicorn
+pytest
