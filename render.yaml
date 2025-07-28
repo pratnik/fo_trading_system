@@ -1,89 +1,79 @@
-# render.yaml
 services:
   - type: web
-    name: fo-trading-system
+    name: app
     env: docker
-    region: frankfurt  # or choose your preferred region
+    plan: standard
     dockerfilePath: ./Dockerfile
-    # Render will build & run the Dockerfile’s CMD
-    healthCheckPath: /_stcore/health
+    # Use Docker's CMD as Start Command
+    autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        sync: false   # auto-populated by Render Postgres addon
-      - key: REDIS_URL
-        sync: false   # auto-populated by Render Redis addon
       - key: SECRET_KEY
-        generateValue: true
+        sync: false
       - key: ENCRYPTION_KEY
-        generateValue: true
-      - key: GUPSHUP_API_KEY
-        required: false
-      - key: GUPSHUP_APP_NAME
-        required: false
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fo-trading-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fo-trading-redis
+          property: connectionString
       - key: PORT
-        value: "8501"
+        value: 8501
+    # Optional: only if you use SQLite or want disk persistence for logs/exports
+    disks:
+      - name: app-db
+        mountPath: /opt/render/project/src/app/db
+        sizeGB: 1
 
   - type: pserv
-    name: fo-trading-postgres
-    env: postgresql
-    plan: starter    # or larger tier as needed
-    databases:
-      - name: fo_trading
-        user: fo_user
-    envVars:
-      - key: PGDATA
-        value: /var/lib/postgresql/data/pgdata
-
-  - type: redis
-    name: fo-trading-redis
-    plan: starter    # or larger
-    envVars: []
-
-  - type: worker
     name: celery-worker
     env: docker
-    region: frankfurt
     dockerfilePath: ./Dockerfile
-    startCommand: celery -A app.tasks.celery_config.celery_app worker --loglevel=info
+    startCommand: celery -A app.tasks.celery_tasks worker --loglevel=info
+    autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
       - key: SECRET_KEY
         sync: false
       - key: ENCRYPTION_KEY
         sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fo-trading-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fo-trading-redis
+          property: connectionString
 
-  - type: worker
+  - type: pserv
     name: celery-beat
     env: docker
-    region: frankfurt
     dockerfilePath: ./Dockerfile
     startCommand: celery -A app.tasks.celery_config.celery_app beat --loglevel=info
+    autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
       - key: SECRET_KEY
         sync: false
       - key: ENCRYPTION_KEY
         sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fo-trading-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fo-trading-redis
+          property: connectionString
 
-volumes:
-  - name: app-db
-    mountPath: /opt/render/project/src/app/db
-    type: disk
-    sizeGB: 1
+databases:
+  - name: fo-trading-postgres
+    plan: standard
 
-cronJobs:
-  - name: calendar-auto-refresh-check
-    schedule: "0 6 * * *"  # every day at 06:00
-    command: celery -A app.tasks.celery_tasks auto_refresh_calendar_check --loglevel=info
-  - name: weekly-calendar-refresh
-    schedule: "0 7 * * 0"  # Sundays at 07:00
-    command: celery -A app.tasks.celery_tasks refresh_event_calendar --loglevel=info
-  - name: new-year-calendar-refresh
-    schedule: "0 6 1 1 *"  # Jan 1st at 06:00
-    command: celery -A app.tasks.celery_tasks refresh_event_calendar --loglevel=info
+redis:
+  - name: fo-trading-redis
+    plan: free
