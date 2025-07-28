@@ -13,4 +13,5 @@ celery==5.3.1
 python-dotenv==1.0.0
 gunicorn==21.2.0
 kiteconnect==4.1.0
+pydantic-settings>=0.3
 fyers-apiv3
