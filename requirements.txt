@@ -13,3 +13,4 @@ celery
 redis
 gunicorn
 pytest
+plotely
