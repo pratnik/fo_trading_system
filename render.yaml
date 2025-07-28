@@ -2,33 +2,21 @@ services:
   - type: web
     name: app
     env: docker
-    plan: standard
     dockerfilePath: ./Dockerfile
-    # Use Docker's CMD as Start Command
     autoDeploy: true
     envVars:
       - key: SECRET_KEY
-        sync: false
       - key: ENCRYPTION_KEY
-        sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: fo-trading-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: fo-trading-redis
-          property: connectionString
+      - key: DATABASE_URL       # linked via fromDatabase
+      - key: REDIS_URL          # linked via fromService
       - key: PORT
-        value: 8501
-    # Optional: only if you use SQLite or want disk persistence for logs/exports
-    disks:
-      - name: app-db
-        mountPath: /opt/render/project/src/app/db
-        sizeGB: 1
+    # If you need a disk for SQLite, use "disks:" here:
+    # disks:
+    #   - name: app-db
+    #     mountPath: /opt/render/project/src/app/db
+    #     sizeGB: 1
 
-  - type: pserv
+  - type: worker
     name: celery-worker
     env: docker
     dockerfilePath: ./Dockerfile
@@ -36,20 +24,11 @@ services:
     autoDeploy: true
     envVars:
       - key: SECRET_KEY
-        sync: false
       - key: ENCRYPTION_KEY
-        sync: false
       - key: DATABASE_URL
-        fromDatabase:
-          name: fo-trading-postgres
-          property: connectionString
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: fo-trading-redis
-          property: connectionString
 
-  - type: pserv
+  - type: worker
     name: celery-beat
     env: docker
     dockerfilePath: ./Dockerfile
@@ -57,23 +36,14 @@ services:
     autoDeploy: true
     envVars:
       - key: SECRET_KEY
-        sync: false
       - key: ENCRYPTION_KEY
-        sync: false
       - key: DATABASE_URL
-        fromDatabase:
-          name: fo-trading-postgres
-          property: connectionString
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: fo-trading-redis
-          property: connectionString
+
+  - type: redis
+    name: fo-trading-redis
+    plan: free
 
 databases:
   - name: fo-trading-postgres
     plan: standard
-
-redis:
-  - name: fo-trading-redis
-    plan: free
