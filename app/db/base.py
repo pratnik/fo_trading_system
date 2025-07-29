@@ -17,7 +17,7 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from app.config import settings, StrategyType, get_instrument_config, validate_instrument_liquidity
-from app.db.base import db_manager
+#from app.db.base import db_manager
 from app.db.models import Trade, Position, StrategyStats, AuditLog
 from app.utils.event_calendar import event_calendar, should_avoid_trading_today
 from app.risk.danger_zone import danger_monitor
