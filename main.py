@@ -149,7 +149,10 @@ def main():
 
     # 4️⃣  Spawn requested subprocesses
     spawned = []
-
+    if st.button("SOS emergency Stop",use_container_width=True, type="primary"):
+      st.error("ALL TRADING HALTED!")
+      #add code to stop strategies here pending
+      st.stop()
     if args.worker:
         spawned.append(launch_celery_worker())
     elif args.beat:
